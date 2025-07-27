@@ -1,11 +1,13 @@
 'use client'
 
-import Image from 'next/image'
+import Image from 'next/image';
 import { Button } from "@/components/ui/button";
-import { MoveRight, Sparkles, ClipboardList } from "lucide-react"; 
+import { MoveRight, Sparkles, ClipboardList } from "lucide-react";
 import { motion, Easing, RepeatType } from "framer-motion";
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect, useState } from 'react'; // Import useEffect and useState
 import { useRouter, usePathname } from 'next/navigation';
+
+import { supabase } from '@/lib/supabaseClient'; // Import your Supabase client
 
 import { Inter, Lexend } from 'next/font/google';
 
@@ -13,10 +15,34 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const lexend = Lexend({ subsets: ['latin'], weight: ['400', '600', '700', '800'], variable: '--font-lexend' });
 
 export default function HomePage() {
-  const isLoggedIn = false;
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // State to manage login status
   const router = useRouter();
   const pathname = usePathname();
   const generateOptionsRef = useRef<HTMLDivElement>(null);
+
+  // Effect to check user session on component mount and on auth state changes
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession(); // Check for existing session
+      setIsLoggedIn(!!session); // Set isLoggedIn to true if session exists
+    };
+
+    checkUser(); // Initial check
+
+    // Listen for auth state changes (e.g., after magic link click, or logout)
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setIsLoggedIn(!!session); // Update state based on auth event
+        // You could add specific logic here if needed for SIGNED_IN or SIGNED_OUT events
+      }
+    );
+
+    // Cleanup the subscription when the component unmounts
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
+
 
   const scrollToGenerateOptions = useCallback(() => {
     if (pathname === '/') {
@@ -27,7 +53,19 @@ export default function HomePage() {
     }
   }, [router, pathname]);
 
-  
+  const handleAuthButtonClick = async () => { // Make it async for signOut
+    if (isLoggedIn) {
+      // If logged in, the button is "Logout"
+      const { error } = await supabase.auth.signOut(); // Call Supabase signOut
+      if (error) {
+        console.error('Logout error:', error.message);
+      }
+      router.push('/'); // Redirect to homepage after logout
+    } else {
+      // If not logged in, it's the "Login" button
+      router.push('/login'); // Redirect to login page
+    }
+  };
 
   return (
     <main className={`${inter.variable} font-inter min-h-screen text-[#2F1B12] overflow-x-hidden`}>
@@ -37,9 +75,16 @@ export default function HomePage() {
         <nav className="hidden md:flex gap-8 text-sm font-medium">
           <a href="#features" className="hover:text-[#FF7A59] transition-colors duration-200">Features</a>
           <a href="#how-it-works" className="hover:text-[#FF7A59] transition-colors duration-200">How It Works</a>
+          {/* Conditionally render History link */}
           {isLoggedIn && <a href="#history" className="hover:text-[#FF7A59] transition-colors duration-200">History</a>}
         </nav>
-        <Button className="bg-[#FF7A59] hover:bg-[#e66549] text-white text-sm px-6 py-3 rounded-full shadow-md hover:shadow-lg transition-all duration-200">Login</Button>
+        {/* Conditionally render Login/Logout button text and action */}
+        <Button
+            onClick={handleAuthButtonClick} // Use the new handler
+            className="bg-[#FF7A59] hover:bg-[#e66549] text-white text-sm px-6 py-3 rounded-full shadow-md hover:shadow-lg transition-all duration-200"
+        >
+            {isLoggedIn ? 'Logout' : 'Login'} {/* Changed button text based on login status */}
+        </Button>
       </header>
 
       <section className="relative pt-36 pb-24 px-6 md:px-16 overflow-hidden flex items-center justify-center min-h-[80vh] bg-[#FFF8F3]">
@@ -98,9 +143,8 @@ export default function HomePage() {
                 </motion.div>
             </div>
 
-            {/* Robot Image Section  */}
+            {/* Robot Image Section */}
             <div className="relative w-full aspect-square max-w-[700px] mx-auto hidden lg:flex items-center justify-center flex-shrink-0">
-                {/* Container for the robot image with its subtle floating animation */}
                 <motion.div
                     initial={{ opacity: 0, x: 100, scale: 0.8 }}
                     animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -116,12 +160,12 @@ export default function HomePage() {
                         src="/assets/robot-chef-hero.png"
                         alt="Friendly AI Chef serving dish"
                         fill
-                        sizes="(max-width: 1034px) 0vw, 1000px" // Adjusted size for the bigger robot
+                        sizes="(max-width: 1024px) 0vw, 900px" // Corrected sizes attribute
                         className="object-contain drop-shadow-xl"
                     />
                 </motion.div>
 
-                
+
             </div>
         </div>
       </section>
@@ -141,10 +185,10 @@ export default function HomePage() {
             whileHover={{ scale: 1.03, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
             className="relative flex flex-col justify-between border border-orange-200 rounded-2xl p-10 shadow-xl bg-gradient-to-br from-white to-orange-50/50 transition-all duration-300 transform hover:-translate-y-1 group"
           >
-            <h3 className={`${lexend.variable} font-lexend text-2xl font-bold mb-4 text-[#2F1B12]`}> Generate Recipe using AI</h3>
+            <h3 className={`${lexend.variable} font-lexend text-2xl font-bold mb-4 text-[#2F1B12]`}>🎯 Generate Recipe using AI</h3>
             <p className="text-base text-gray-700 mb-6">Let AI suggest a dish based on your taste, dietary needs, or current cravings. Discover new culinary horizons effortlessly.</p>
             <Button className="bg-[#FF7A59] hover:bg-[#e66549] text-white text-md px-6 py-3 rounded-full shadow-md self-start transform group-hover:scale-[1.02] transition-transform duration-200">Try It Now</Button>
-         
+
             <div className="absolute -top-6 -right-6 w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center opacity-70 transform group-hover:rotate-12 transition-transform duration-300">
                 <Sparkles className="w-12 h-12 text-[#FF7A59]" />
             </div>
@@ -158,10 +202,10 @@ export default function HomePage() {
             whileHover={{ scale: 1.03, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
             className="relative flex flex-col justify-between border border-orange-200 rounded-2xl p-10 shadow-xl bg-gradient-to-br from-white to-orange-50/50 transition-all duration-300 transform hover:-translate-y-1 group"
           >
-            <h3 className={`${lexend.variable} font-lexend text-2xl font-bold mb-4 text-[#2F1B12]`}> Generate using Ingredients</h3>
+            <h3 className={`${lexend.variable} font-lexend text-2xl font-bold mb-4 text-[#2F1B12]`}>🥘 Generate using Ingredients</h3>
             <p className="text-base text-gray-700 mb-6">Input the ingredients you have on hand, and ChefAI will craft creative and delicious recipes, minimizing food waste.</p>
             <Button className="bg-[#FF7A59] hover:bg-[#e66549] text-white text-md px-6 py-3 rounded-full shadow-md self-start transform group-hover:scale-[1.02] transition-transform duration-200">Get Cooking</Button>
-           
+
             <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center opacity-70 transform group-hover:-rotate-12 transition-transform duration-300">
                 <ClipboardList className="w-12 h-12 text-[#FF7A59]" />
             </div>
