@@ -119,4 +119,64 @@
   body {
     @apply bg-background text-foreground;
   }
+
+
+
+
+
+  /* app/globals.css */
+
+
+
+@tailwind utilities;
+
+/* Custom Fonts (ensure these match what you're doing with next/font) */
+:root {
+  --font-inter: 'Inter', sans-serif;
+  --font-lexend: 'Lexend', sans-serif;
+}
+
+/* Define Custom Colors as CSS Variables (Optional, for direct CSS use) */
+:root {
+  --primary-orange: #FF7A59;
+  --dark-brown: #2F1B12;
+  --light-orange-bg: #FFF8F3;
+}
+
+/* Custom Keyframes for ChefHat animation */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Custom Animation Class */
+.animate-spin-slow-custom {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* You might need to define blob here too if it's not working from your existing setup */
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-blob-custom {
+  animation: blob 7s infinite cubic-bezier(0.6, 0.01, 0.3, 0.9);
+}
+
+/* If you need delays, you'd create more classes: */
+.animate-blob-custom-2000 {
+  animation: blob 7s infinite cubic-bezier(0.6, 0.01, 0.3, 0.9) 2s;
+}
+/* etc. */
+
+/* And for colors, you'd use them like: */
+/* .bg-primary-orange-custom { background-color: var(--primary-orange); } */
+/* Or simply use inline Tailwind direct hex: bg-[#FF7A59] */
 }

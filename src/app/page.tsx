@@ -185,7 +185,7 @@ export default function HomePage() {
             whileHover={{ scale: 1.03, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
             className="relative flex flex-col justify-between border border-orange-200 rounded-2xl p-10 shadow-xl bg-gradient-to-br from-white to-orange-50/50 transition-all duration-300 transform hover:-translate-y-1 group"
           >
-            <h3 className={`${lexend.variable} font-lexend text-2xl font-bold mb-4 text-[#2F1B12]`}>🎯 Generate Recipe using AI</h3>
+            <h3 className={`${lexend.variable} font-lexend text-2xl font-bold mb-4 text-[#2F1B12]`}> Generate Recipe using AI</h3>
             <p className="text-base text-gray-700 mb-6">Let AI suggest a dish based on your taste, dietary needs, or current cravings. Discover new culinary horizons effortlessly.</p>
             <Button className="bg-[#FF7A59] hover:bg-[#e66549] text-white text-md px-6 py-3 rounded-full shadow-md self-start transform group-hover:scale-[1.02] transition-transform duration-200">Try It Now</Button>
 
@@ -202,9 +202,15 @@ export default function HomePage() {
             whileHover={{ scale: 1.03, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
             className="relative flex flex-col justify-between border border-orange-200 rounded-2xl p-10 shadow-xl bg-gradient-to-br from-white to-orange-50/50 transition-all duration-300 transform hover:-translate-y-1 group"
           >
-            <h3 className={`${lexend.variable} font-lexend text-2xl font-bold mb-4 text-[#2F1B12]`}>🥘 Generate using Ingredients</h3>
+            <h3 className={`${lexend.variable} font-lexend text-2xl font-bold mb-4 text-[#2F1B12]`}> Generate using Ingredients</h3>
             <p className="text-base text-gray-700 mb-6">Input the ingredients you have on hand, and ChefAI will craft creative and delicious recipes, minimizing food waste.</p>
-            <Button className="bg-[#FF7A59] hover:bg-[#e66549] text-white text-md px-6 py-3 rounded-full shadow-md self-start transform group-hover:scale-[1.02] transition-transform duration-200">Get Cooking</Button>
+           <Button
+              onClick={() => router.push('/generate')} 
+              className="bg-[#FF7A59] hover:bg-[#e66549] text-white text-md px-6 py-3 rounded-full shadow-md self-start transform group-hover:scale-[1.02] transition-transform duration-200"
+            >
+              Get Cooking
+            </Button>
+
 
             <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center opacity-70 transform group-hover:-rotate-12 transition-transform duration-300">
                 <ClipboardList className="w-12 h-12 text-[#FF7A59]" />
