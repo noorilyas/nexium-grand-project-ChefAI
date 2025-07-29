@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Lucide React Icons
-import { AlertCircle, CheckCircle, ChefHat, Sparkles, ClipboardList, UtensilsCrossed, Wheat, Soup, X, Flame, Leaf, BookText, Timer } from "lucide-react";
+import { AlertCircle, CheckCircle, ChefHat, Sparkles, ClipboardList, UtensilsCrossed, Wheat, Soup, X, Flame, Leaf, BookText, Timer, Apple, Salad, Milk } from "lucide-react"; // Added Apple, Salad, Milk for nutritional info
 
 // Framer Motion for animations
 import { motion, AnimatePresence } from "framer-motion";
@@ -46,8 +46,8 @@ export default function GenerateRecipePage() {
   // UI States
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [recipe, setRecipe] = useState<any | null>(null);
-  const [aiImage, setAiImage] = useState<string | null>(null);
+  const [recipe, setRecipe] = useState<any | null>(null); // Recipe will hold the JSON object from backend
+  const [aiImage, setAiImage] = useState<string | null>(null); // Stores the DALL-E image URL
 
   // Authentication States
   const [user, setUser] = useState<any>(null);
@@ -117,15 +117,15 @@ export default function GenerateRecipePage() {
 
 
   // --- Form Submission Handler ---
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setRecipe(null);
-    setAiImage(null);
+    setAiImage(null); // Clear previous image
 
     if (ingredients.length === 0) {
-      setError('Please enter at least one ingredient to get started.');
+      setError("Please enter at least one ingredient to get started.");
       setLoading(false);
       return;
     }
@@ -134,34 +134,35 @@ export default function GenerateRecipePage() {
     if (cookingTimeValue) {
       const timeNum = parseFloat(cookingTimeValue);
       if (isNaN(timeNum) || timeNum <= 0) {
-        setError('Cooking time must be a positive number if entered.');
+        setError("Cooking time must be a positive number if entered.");
         setLoading(false);
         return;
       }
     }
 
-
-    const finalCookingTime = cookingTimeValue ? `${cookingTimeValue} ${cookingTimeUnit}` : '';
+    const finalCookingTime = cookingTimeValue
+      ? `${cookingTimeValue} ${cookingTimeUnit}`
+      : "";
 
     try {
       const session = await supabase.auth.getSession();
       const accessToken = session?.data.session?.access_token;
 
       if (!accessToken) {
-        throw new Error('User not authenticated. Please log in again.');
+        throw new Error("User not authenticated. Please log in again.");
       }
 
-      const response = await fetch('/api/generate-recipe', {
-        method: 'POST',
+      const response = await fetch("/api/generate-recipe", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          ingredients: ingredients.join(', '),
-          dietaryRestrictions: dietaryRestrictions.join(', '),
-          cuisinePreference: cuisinePreference.join(', '),
-          mealType: mealType.join(', '),
+          ingredients: ingredients.join(", "),
+          dietaryRestrictions: dietaryRestrictions.join(", "),
+          cuisinePreference: cuisinePreference.join(", "),
+          mealType: mealType.join(", "),
           servingSize,
           cookingTime: finalCookingTime,
           difficulty,
@@ -171,16 +172,34 @@ export default function GenerateRecipePage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate recipe. Please try again.');
+        let errorMessage =
+          errorData.message ||
+          errorData.error ||
+          "Failed to generate recipe. Please try again.";
+
+        // --- Enhanced Error Display (if backend sends rawText for JSON parse failures) ---
+        if (errorData.rawText) {
+          errorMessage += ` Debug Info: Received malformed JSON from AI. Part of response: "${errorData.rawText.substring(
+            0,
+            100
+          )}..."`;
+        }
+        // --- END Enhanced Error Display ---
+
+        throw new Error(errorMessage);
       }
 
+      // Backend now returns an object { recipe: recipeJson, imageUrl: aiImageUrl }
       const data = await response.json();
-      setRecipe(data.recipe);
-      setAiImage(data.imageUrl);
 
+      setRecipe(data.recipe);
+      setAiImage(data.imageUrl); // Set the DALL-E image URL
     } catch (err: any) {
-      console.error('Recipe generation failed:', err);
-      setError(err.message || 'An unexpected error occurred during recipe generation. Please check your inputs and try again.');
+      console.error("Recipe generation failed:", err);
+      setError(
+        err.message ||
+          "An unexpected error occurred during recipe generation. Please check your inputs and try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -384,7 +403,7 @@ export default function GenerateRecipePage() {
                       <Input
                         id="cookingTimeValue"
                         type="number"
-                        min="1" // ADDED: min attribute to enforce minimum value of 1
+                        min="1"
                         value={cookingTimeValue}
                         onChange={(e) => setCookingTimeValue(e.target.value)}
                         placeholder="e.g., 30"
@@ -501,13 +520,20 @@ export default function GenerateRecipePage() {
                       </CardTitle>
                       {aiImage && (
                         <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden mb-6 shadow-lg border border-orange-100">
-                          <Image
+                          {/* <Image
                             src={aiImage}
                             alt={recipe.title || 'Generated recipe image'}
                             fill
                             sizes="(max-width: 1200px) 100vw, 50vw"
                             className="object-cover rounded-xl"
                             priority
+                          /> */}
+                          <img
+                            src={aiImage}
+                            alt={recipe.title || "Generated recipe image"}
+                            width={512}
+                            height={512}
+                            className="object-cover rounded-xl"
                           />
                         </div>
                       )}
@@ -518,8 +544,14 @@ export default function GenerateRecipePage() {
                         {recipe.servingSize && <Badge variant="secondary"><UtensilsCrossed className="w-3 h-3 mr-1" /> {recipe.servingSize}</Badge>}
                         {recipe.cookingTime && <Badge variant="secondary"><Soup className="w-3 h-3 mr-1" /> {recipe.cookingTime}</Badge>}
                         {recipe.difficulty && <Badge variant="secondary"><ChefHat className="w-3 h-3 mr-1" /> {recipe.difficulty}</Badge>}
-                        {recipe.cuisinePreference && <Badge variant="secondary">{recipe.cuisinePreference}</Badge>}
-                        {recipe.mealType && <Badge variant="secondary">{recipe.mealType}</Badge>}
+                        {/* Ensure these are rendered only if they are not empty strings or null */}
+                        {recipe.cuisinePreference && recipe.cuisinePreference.length > 0 && Array.isArray(recipe.cuisinePreference) ? 
+                          recipe.cuisinePreference.map((cuisine: string, idx: number) => <Badge key={idx} variant="secondary">{cuisine}</Badge>) : 
+                          (typeof recipe.cuisinePreference === 'string' && recipe.cuisinePreference) && <Badge variant="secondary">{recipe.cuisinePreference}</Badge>}
+
+                        {recipe.mealType && recipe.mealType.length > 0 && Array.isArray(recipe.mealType) ? 
+                          recipe.mealType.map((meal: string, idx: number) => <Badge key={idx} variant="secondary">{meal}</Badge>) :
+                          (typeof recipe.mealType === 'string' && recipe.mealType) && <Badge variant="secondary">{recipe.mealType}</Badge>}
                       </div>
                     </CardHeader>
                     <CardContent className="p-0 space-y-8">
@@ -547,12 +579,43 @@ export default function GenerateRecipePage() {
                         </ol>
                       </div>
 
-                      <Button
-                        className="w-full mt-10 bg-[#2F1B12] hover:bg-gray-800 text-white text-lg px-8 py-4 rounded-full shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center transform hover:-translate-y-1"
-                        onClick={() => alert('Save recipe functionality to be implemented!')}
-                      >
-                        <CheckCircle className="mr-3 w-5 h-5" /> Save This Recipe
-                      </Button>
+                      {/* --- NEW: Nutritional Information Section --- */}
+                      {recipe.nutritionalInfo && (
+                        <>
+                          <Separator className="bg-orange-100" />
+                          <div>
+                            <h3 className="text-2xl font-semibold mb-4 text-[#FF7A59] flex items-center">
+                              <Salad className="mr-2 w-6 h-6" /> Nutritional Information
+                            </h3>
+                            <ul className="list-disc list-inside space-y-2 text-gray-700 text-lg leading-relaxed">
+                              {recipe.nutritionalInfo.calories && (
+                                <li><Apple className="inline-block w-5 h-5 mr-2 text-green-600" />Calories: {recipe.nutritionalInfo.calories}</li>
+                              )}
+                              {recipe.nutritionalInfo.protein && (
+                                <li><Milk className="inline-block w-5 h-5 mr-2 text-blue-600" />Protein: {recipe.nutritionalInfo.protein}</li>
+                              )}
+                              {recipe.nutritionalInfo.fat && (
+                                <li><Timer className="inline-block w-5 h-5 mr-2 text-yellow-600" />Fat: {recipe.nutritionalInfo.fat}</li>
+                              )}
+                              {Object.keys(recipe.nutritionalInfo).length === 0 && (
+                                <li>Nutritional information not available or estimable for this recipe.</li>
+                              )}
+                            </ul>
+                            <p className="text-sm text-gray-500 mt-2">
+                              Note: Nutritional information is an estimate based on common understanding and may not be exact.
+                            </p>
+                          </div>
+                        </>
+                      )}
+                      {/* --- END NEW: Nutritional Information Section --- */}
+
+
+                        <Button
+                          className="w-full mt-10 bg-[#FF7A59] hover:bg-[#e66549] text-white text-lg px-8 py-4 rounded-full shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center transform hover:-translate-y-1"
+                          onClick={() => alert('Save recipe functionality to be implemented!')}
+                        >
+                          <CheckCircle className="mr-3 w-5 h-5" /> Save This Recipe
+                        </Button>
                     </CardContent>
                   </Card>
                 </motion.div>
