@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabaseClient';
+import { toast } from "sonner";
 
 // ShadCN UI components
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,7 @@ export default function GenerateRecipePage() {
   const [error, setError] = useState<string | null>(null);
   const [recipe, setRecipe] = useState<any | null>(null); // Recipe will hold the JSON object from backend
   const [aiImage, setAiImage] = useState<string | null>(null); // Stores the DALL-E image URL
+  const [savingRecipe, setSavingRecipe] = useState(false);
 
   // Authentication States
   const [user, setUser] = useState<any>(null);
@@ -205,6 +207,87 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
   };
 
+
+const handleSaveRecipe = async () => {
+  if (!recipe || !aiImage || !user) {
+    toast("Cannot Save Recipe", {
+      description: "No recipe generated or user not logged in. Please generate a recipe and ensure you are logged in.",
+      action: {
+        label: "Login",
+        onClick: () => router.push('/login'),
+      },
+      cancel: { // THIS IS THE SECTION WE ARE FIXING
+        label: "Dismiss",
+        onClick: () => {}, // ADD THIS empty onClick function
+      },
+      duration: 4000,
+    });
+    return;
+  }
+
+  setSavingRecipe(true);
+  setError(null); // Clear any previous errors
+
+  try {
+    const session = await supabase.auth.getSession();
+    const accessToken = session?.data.session?.access_token;
+
+    if (!accessToken) {
+      throw new Error("User not authenticated. Please log in again to save recipes.");
+    }
+
+    const response = await fetch("/api/save", { 
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        recipeData: recipe, // This should be your recipe JSON
+        imageUrl: aiImage, // This is your DALL-E image URL
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to save recipe. Please try again.");
+    }
+
+    const data = await response.json();
+    console.log("Recipe saved successfully:", data);
+
+    toast("Recipe Saved!", {
+      description: "Your culinary creation has been successfully saved.",
+      duration: 3000,
+      action: {
+        label: "View Saved",
+        onClick: () => router.push('/saved-recipes'), // Assuming you have a saved recipes page
+      },
+      icon: <CheckCircle className="h-4 w-4" />, // Example: Add an icon to the toast
+    });
+
+  } catch (err: any) {
+    console.error("Error saving recipe:", err);
+    toast("Save Failed", {
+      description: err.message || "There was an error saving your recipe.",
+      duration: 5000,
+      cancel: { // THIS IS THE SECTION WE ARE FIXING
+        label: "Dismiss",
+        onClick: () => {}, // ADD THIS empty onClick function
+      },
+      icon: <AlertCircle className="h-4 w-4 text-red-500" />, // Example: Add an icon for error
+    });
+    setError(err.message || "Failed to save recipe."); // Still set component-level error if you want to display it on page
+  } finally {
+    setSavingRecipe(false);
+  }
+};
+
+
+
+
+
+  
   // --- Loading Spinner/Fallback ---
   if (isAuthChecking) {
     return (
@@ -609,13 +692,26 @@ const handleSubmit = async (e: React.FormEvent) => {
                       )}
                       {/* --- END NEW: Nutritional Information Section --- */}
 
-
-                        <Button
-                          className="w-full mt-10 bg-[#FF7A59] hover:bg-[#e66549] text-white text-lg px-8 py-4 rounded-full shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center transform hover:-translate-y-1"
-                          onClick={() => alert('Save recipe functionality to be implemented!')}
-                        >
-                          <CheckCircle className="mr-3 w-5 h-5" /> Save This Recipe
-                        </Button>
+                              <Button
+                                className="w-full mt-10 bg-[#FF7A59] hover:bg-[#e66549] text-white text-lg px-8 py-4 rounded-full shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center transform hover:-translate-y-1"
+                                onClick={handleSaveRecipe} // Changed to call the new function
+                                disabled={savingRecipe} // Added to disable during saving
+                              >
+                                {savingRecipe ? ( 
+                                  <motion.span
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ repeat: Infinity, duration: 0.8, ease: "easeInOut" }}
+                                    className="flex items-center"
+                                  >
+                                    <ChefHat className="animate-spin-slow-custom mr-3 w-5 h-5" /> Saving...
+                                  </motion.span>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="mr-3 w-5 h-5" /> Save This Recipe
+                                  </>
+                                )}
+                              </Button>
                     </CardContent>
                   </Card>
                 </motion.div>

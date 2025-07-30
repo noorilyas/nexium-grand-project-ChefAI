@@ -173,7 +173,7 @@ Strictly output only the JSON object.`;
   let aiImageUrl: string | undefined = undefined;
   if (recipeJson?.title) {
     try {
-      const imagePrompt = `High-quality, professional food photography of "${recipeJson.title}", vibrant colors, appetizing, on a clean background, realistic, studio lighting.`;
+      const imagePrompt = `Hyperrealistic close-up food photography of '${recipeJson.title}', incredibly detailed textures (visible grains, moisture, etc.), mouthwatering presentation, professional studio lighting with sharp focus and shallow depth of field, shot with a high-resolution DSLR camera (e.g., Hasselblad or Phase One) and a prime lens, emphasizing natural colors and subtle reflections, in the style of award-winning food photographers. The scene should evoke a sense of culinary artistry and intense realism.`;
 
       const imageResponse = await openai.images.generate({
         model: "dall-e-3",
