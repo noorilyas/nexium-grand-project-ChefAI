@@ -44,7 +44,51 @@ export async function POST(request: Request) {
     userId,
   } = body;
 
-  const recipePromptText = `Generate a detailed and creative recipe in JSON format based on the following criteria. Ensure the output is *only* the JSON object, ready for direct parsing. Do not include any markdown backticks or extra text outside the JSON. The JSON should have the following structure and fields, including a section for nutritional information (calories, protein, fat) based on common understanding of ingredients (use approximate common values if specific values aren't calculable by a general model). Use "N/A" if info is not available or estimable.:
+//   const recipePromptText = `Generate a detailed and creative recipe in JSON format based on the following criteria. Ensure the output is *only* the JSON object, ready for direct parsing. Do not include any markdown backticks or extra text outside the JSON. The JSON should have the following structure and fields, including a section for nutritional information (calories, protein, fat) based on common understanding of ingredients (use approximate common values if specific values aren't calculable by a general model). Use "N/A" if info is not available or estimable.:
+
+// {
+//   "title": "[Recipe Title]",
+//   "description": "[Brief, enticing description]",
+//   "servingSize": "[e.g., 2, 4-6 people]",
+//   "cookingTime": "[e.g., 30 minutes, 1 hour]",
+//   "difficulty": "[Easy/Medium/Hard]",
+//   "dietaryRestrictions": ["e.g., Vegetarian", "Gluten-Free"],
+//   "cuisinePreference": ["e.g., Italian", "Mexican"],
+//   "mealType": "[e.g., Dinner", "Breakfast]",
+//   "ingredients": [
+//     "Quantity Unit Ingredient (Preparation)",
+//     "..."
+//   ],
+//   "instructions": [
+//     "Step 1: ...",
+//     "Step 2: ...",
+//     "..."
+//   ],
+//   "nutritionalInfo": {
+//     "calories": "[e.g., 450 kcal per serving ]",
+//     "protein": "[e.g., 25g per serving ]",
+//     "fat": "[e.g., 15g per serving ]"
+//   }
+// }
+
+// Here are the user's preferences:
+// Ingredients: ${ingredients || "Any available ingredients"}
+// Dietary Restrictions: ${dietaryRestrictions || "None"}
+// Cuisine Preference: ${cuisinePreference || "Any"}
+// Meal Type: ${mealType || "Any"}
+// Serving Size: ${servingSize || "Not specified"}
+// Cooking Time: ${cookingTime || "Not specified"}
+// Difficulty: ${difficulty || "Any"}
+
+// Strictly output only the JSON object.`;
+
+
+
+
+
+// _________________________________________________
+
+const recipePromptText = `Generate a detailed and creative recipe in JSON format based on the following criteria. Ensure the output is *only* the JSON object, ready for direct parsing. Do not include any markdown backticks or extra text outside the JSON. The JSON should have the following structure and fields, including a section for nutritional information (calories, protein, fat) based on common understanding of ingredients (use approximate common values if specific values aren't calculable by a general model). Use "N/A" if info is not available or estimable. **You must always include approximate values for calories, protein, and fat per serving — these fields are mandatory and cannot be omitted under any condition.**:
 
 {
   "title": "[Recipe Title]",
@@ -65,9 +109,9 @@ export async function POST(request: Request) {
     "..."
   ],
   "nutritionalInfo": {
-    "calories": "[e.g., 450 kcal per serving ]",
-    "protein": "[e.g., 25g per serving ]",
-    "fat": "[e.g., 15g per serving ]"
+    "calories": "[e.g., 450 kcal per serving]",
+    "protein": "[e.g., 25g per serving]",
+    "fat": "[e.g., 15g per serving]"
   }
 }
 
@@ -82,7 +126,13 @@ Difficulty: ${difficulty || "Any"}
 
 Strictly output only the JSON object.`;
 
-  let recipeJson: any = null; // CHANGE THIS LINE (Line 78 in your provided code)
+// _________________________________________________
+
+
+
+
+
+  let recipeJson: any = null; 
   let rawRecipeText: string | undefined | null; // Added ' | null' here
 
   try {
@@ -173,8 +223,11 @@ Strictly output only the JSON object.`;
   let aiImageUrl: string | undefined = undefined;
   if (recipeJson?.title) {
     try {
-      const imagePrompt = `Hyperrealistic close-up food photography of '${recipeJson.title}', incredibly detailed textures (visible grains, moisture, etc.), mouthwatering presentation, professional studio lighting with sharp focus and shallow depth of field, shot with a high-resolution DSLR camera (e.g., Hasselblad or Phase One) and a prime lens, emphasizing natural colors and subtle reflections, in the style of award-winning food photographers. The scene should evoke a sense of culinary artistry and intense realism.`;
+      const imagePrompt = `Ultra-realistic photograph of '${recipeJson.title}' — styled like a professional magazine food photo. Use natural lighting with soft shadows, realistic colors, and authentic textures (e.g. visible grains, slight imperfections, natural steam or moisture). Beautifully plated on a clean surface with real-world imperfections like crumbs or sauce smears. Captured with a shallow depth of field and a softly blurred background for a natural DSLR look. 
 
+    📌 Important: The image must **only show the food and background**. 
+    **Do NOT include**: cameras, camera lenses, human hands, reflections, photography equipment, tripods, studio lights, photographers, person holding camera, hands holding camera, lens flare from camera, camera flash, camera view, photography studio, blurred camera in background, watermark, text. 
+    The final output should feel like it was taken with a DSLR — but no camera or gear should be present in the image at all.`;
       const imageResponse = await openai.images.generate({
         model: "dall-e-3",
         prompt: imagePrompt,

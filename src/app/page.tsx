@@ -2,92 +2,218 @@
 
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
-import { MoveRight, Sparkles, ClipboardList } from "lucide-react";
+import { MoveRight, Sparkles, ClipboardList, MenuIcon, HomeIcon, Lightbulb, ChefHat, History, LogOut, LogIn } from "lucide-react"; // Added new icons
 import { motion, Easing, RepeatType } from "framer-motion";
-import { useRef, useCallback, useEffect, useState } from 'react'; // Import useEffect and useState
+import { useRef, useCallback, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
-import { supabase } from '@/lib/supabaseClient'; // Import your Supabase client
+import { supabase } from '@/lib/supabaseClient';
 
 import { Inter, Lexend } from 'next/font/google';
+
+// Import Sheet components for the mobile menu
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const lexend = Lexend({ subsets: ['latin'], weight: ['400', '600', '700', '800'], variable: '--font-lexend' });
 
 export default function HomePage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // State to manage login status
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // State for mobile menu open/close
   const router = useRouter();
   const pathname = usePathname();
   const generateOptionsRef = useRef<HTMLDivElement>(null);
 
-  // Effect to check user session on component mount and on auth state changes
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession(); // Check for existing session
-      setIsLoggedIn(!!session); // Set isLoggedIn to true if session exists
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
     };
 
-    checkUser(); // Initial check
+    checkUser();
 
-    // Listen for auth state changes (e.g., after magic link click, or logout)
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setIsLoggedIn(!!session); // Update state based on auth event
-        // You could add specific logic here if needed for SIGNED_IN or SIGNED_OUT events
+        setIsLoggedIn(!!session);
       }
     );
 
-    // Cleanup the subscription when the component unmounts
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
+  }, []);
 
-
+  // REVERTED: This function now correctly scrolls to the 'generate-options' section
   const scrollToGenerateOptions = useCallback(() => {
-    if (pathname === '/') {
-      router.push('/#generate-options', { scroll: false });
-      if (generateOptionsRef.current) {
-        generateOptionsRef.current.scrollIntoView({ behavior: 'smooth' });
-      }
+    if (generateOptionsRef.current) {
+      generateOptionsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }, [router, pathname]);
+  }, []);
 
-  const handleAuthButtonClick = async () => { // Make it async for signOut
+
+  const handleAuthButtonClick = async () => {
     if (isLoggedIn) {
-      // If logged in, the button is "Logout"
-      const { error } = await supabase.auth.signOut(); // Call Supabase signOut
+      const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Logout error:', error.message);
       }
-      router.push('/'); // Redirect to homepage after logout
+      router.push('/');
     } else {
-      // If not logged in, it's the "Login" button
-      router.push('/login'); // Redirect to login page
+      router.push('/login');
     }
+    setIsMenuOpen(false); // Close menu on auth action
+  };
+
+  const handleNavLinkClick = (path: string) => {
+    // Special handling for hash links within the same page
+    if (path.startsWith('/#') && pathname === '/') {
+      const id = path.substring(2); // Remove '/#'
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      router.push(path);
+    }
+    setIsMenuOpen(false); // Close menu after clicking a link
   };
 
   return (
     <main className={`${inter.variable} font-inter min-h-screen text-[#2F1B12] overflow-x-hidden`}>
 
-      <header className="w-full flex items-center justify-between px-6 md:px-16 py-4 shadow-lg bg-white/80 backdrop-blur-sm fixed top-0 z-50 border-b border-orange-100">
-        <Image src="/assets/logo.PNG" alt="ChefAI logo" width={160} height={90} className="object-contain" />
-        <nav className="hidden md:flex gap-8 text-sm font-medium">
-          <a href="#features" className="hover:text-[#FF7A59] transition-colors duration-200">Features</a>
-          <a href="#how-it-works" className="hover:text-[#FF7A59] transition-colors duration-200">How It Works</a>
-          {/* Conditionally render History link */}
-          {isLoggedIn && <a href="#history" className="hover:text-[#FF7A59] transition-colors duration-200">History</a>}
-        </nav>
-        {/* Conditionally render Login/Logout button text and action */}
-        <Button
-            onClick={handleAuthButtonClick} // Use the new handler
-            className="bg-[#FF7A59] hover:bg-[#e66549] text-white text-sm px-6 py-3 rounded-full shadow-md hover:shadow-lg transition-all duration-200"
-        >
-            {isLoggedIn ? 'Logout' : 'Login'} {/* Changed button text based on login status */}
-        </Button>
+      <header className="w-full flex items-center justify-between py-4 shadow-lg bg-white/80 backdrop-blur-sm fixed top-0 z-50 border-b border-orange-100">
+        <div className="container mx-auto flex items-center justify-between px-6 md:px-16">
+          {/* Logo - clickable to homepage */}
+          <Image
+            src="/assets/logo.PNG"
+            alt="ChefAI logo"
+            width={160}
+            height={90}
+            className="object-contain cursor-pointer"
+            onClick={() => handleNavLinkClick('/')}
+          />
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex gap-8 text-sm font-medium">
+            <a
+              href="/#features"
+              className="hover:text-[#FF7A59] transition-colors duration-200"
+              onClick={(e) => { e.preventDefault(); handleNavLinkClick('/#features'); }}
+            >
+              Features
+            </a>
+            <a
+              href="/#how-it-works"
+              className="hover:text-[#FF7A59] transition-colors duration-200"
+              onClick={(e) => { e.preventDefault(); handleNavLinkClick('/#how-it-works'); }}
+            >
+              How It Works
+            </a>
+            {isLoggedIn && (
+              <a
+                href="/history"
+                className="hover:text-[#FF7A59] transition-colors duration-200"
+                onClick={(e) => { e.preventDefault(); handleNavLinkClick('/history'); }}
+              >
+                History
+              </a>
+            )}
+          </nav>
+
+          {/* Mobile Menu Button (Hamburger) */}
+          <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon">
+                <MenuIcon className="h-6 w-6 text-[#333]" />
+                <span className="sr-only">Toggle navigation menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="right"
+              className={`w-[280px] sm:w-[320px] bg-gradient-to-br from-white to-orange-50 flex flex-col py-8 px-6 shadow-2xl ${inter.variable} ${lexend.variable}`}
+            >
+              <SheetHeader className="text-left mb-8">
+                <Image
+                  src="/assets/logo.PNG"
+                  alt="ChefAI logo"
+                  width={120}
+                  height={70}
+                  className="object-contain mb-2"
+                />
+                <SheetTitle className="text-3xl font-extrabold text-[#333] font-lexend">
+                  ChefAI Menu
+                </SheetTitle>
+                <SheetDescription className="text-base text-gray-600">
+                  Your culinary assistant.
+                </SheetDescription>
+              </SheetHeader>
+
+              <nav className="flex flex-col gap-6 text-xl font-medium flex-grow">
+                <a
+                  href="/"
+                  className="flex items-center gap-3 text-gray-700 hover:text-[#FF7A59] transition-colors duration-200 py-2 border-b border-gray-100"
+                  onClick={(e) => { e.preventDefault(); handleNavLinkClick('/'); }}
+                >
+                  <HomeIcon className="h-5 w-5" /> Home
+                </a>
+                <a
+                  href="/#features"
+                  className="flex items-center gap-3 text-gray-700 hover:text-[#FF7A59] transition-colors duration-200 py-2 border-b border-gray-100"
+                  onClick={(e) => { e.preventDefault(); handleNavLinkClick('/#features'); }}
+                >
+                  <Lightbulb className="h-5 w-5" /> Features
+                </a>
+                <a
+                  href="/#how-it-works"
+                  className="flex items-center gap-3 text-gray-700 hover:text-[#FF7A59] transition-colors duration-200 py-2 border-b border-gray-100"
+                  onClick={(e) => { e.preventDefault(); handleNavLinkClick('/#how-it-works'); }}
+                >
+                  <ChefHat className="h-5 w-5" /> How It Works
+                </a>
+                {isLoggedIn && (
+                  <a
+                    href="/history"
+                    className="flex items-center gap-3 text-gray-700 hover:text-[#FF7A59] transition-colors duration-200 py-2 border-b border-gray-100"
+                    onClick={(e) => { e.preventDefault(); handleNavLinkClick('/history'); }}
+                  >
+                    <History className="h-5 w-5" /> History
+                  </a>
+                )}
+              </nav>
+
+              <div className="mt-auto pt-6 border-t border-gray-100">
+                <Button
+                  onClick={handleAuthButtonClick}
+                  className="w-full bg-[#FF7A59] hover:bg-[#e66549] text-white text-base px-6 py-3 rounded-full shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  {isLoggedIn ? <LogOut className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
+                  {isLoggedIn ? 'Logout' : 'Login'}
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          {/* Desktop Login/Logout Button (hidden on mobile, handled in Sheet for mobile) */}
+          <Button
+            onClick={handleAuthButtonClick}
+            className="bg-[#FF7A59] hover:bg-[#e66549] text-white text-sm px-6 py-3 rounded-full shadow-md hover:shadow-lg transition-all duration-200 hidden md:flex items-center gap-2"
+          >
+            {isLoggedIn ? <LogOut className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
+            {isLoggedIn ? 'Logout' : 'Login'}
+          </Button>
+        </div>
       </header>
 
+      {/* Hero Section */}
       <section className="relative pt-36 pb-24 px-6 md:px-16 overflow-hidden flex items-center justify-center min-h-[80vh] bg-[#FFF8F3]">
+        {/* ... (rest of your HomePage content remains the same) ... */}
 
         <div className="absolute inset-0 -z-30 h-full">
           <div className="relative w-full h-full">
@@ -102,6 +228,7 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* Background blobs */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-[#FF7A59]/15 to-[#FFC2B3]/0 rounded-full mix-blend-multiply filter blur-3xl opacity-60 -z-20 animate-blob" />
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-[#FFE2D1]/25 to-[#FFD5C0]/0 rounded-full mix-blend-multiply filter blur-3xl opacity-60 -z-20 animate-blob animation-delay-2000" />
         <div className="absolute top-1/2 left-1/4 w-80 h-80 bg-gradient-to-r from-[#FF7A59]/10 to-[#FFC2B3]/0 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-20 animate-blob animation-delay-4000" />
@@ -134,7 +261,7 @@ export default function HomePage() {
                 className="lg:text-left"
                 >
                 <Button
-                    onClick={scrollToGenerateOptions}
+                    onClick={scrollToGenerateOptions} // This now correctly calls the scroll function
                     className="bg-[#FF7A59] hover:bg-[#e66549] text-white text-lg px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center mx-auto lg:mx-0 transform hover:-translate-y-1"
                 >
                     Start Cooking Smart
@@ -160,7 +287,7 @@ export default function HomePage() {
                         src="/assets/robot-chef-hero.png"
                         alt="Friendly AI Chef serving dish"
                         fill
-                        sizes="(max-width: 1024px) 0vw, 900px" // Corrected sizes attribute
+                        sizes="(max-width: 1024px) 0vw, 900px"
                         className="object-contain drop-shadow-xl"
                     />
                 </motion.div>
@@ -205,11 +332,11 @@ export default function HomePage() {
             <h3 className={`${lexend.variable} font-lexend text-2xl font-bold mb-4 text-[#2F1B12]`}> Generate using Ingredients</h3>
             <p className="text-base text-gray-700 mb-6">Input the ingredients you have on hand, and ChefAI will craft creative and delicious recipes, minimizing food waste.</p>
            <Button
-              onClick={() => router.push('/generate')} 
-              className="bg-[#FF7A59] hover:bg-[#e66549] text-white text-md px-6 py-3 rounded-full shadow-md self-start transform group-hover:scale-[1.02] transition-transform duration-200"
-            >
-              Get Cooking
-            </Button>
+             onClick={() => router.push('/generate')}
+             className="bg-[#FF7A59] hover:bg-[#e66549] text-white text-md px-6 py-3 rounded-full shadow-md self-start transform group-hover:scale-[1.02] transition-transform duration-200"
+           >
+             Get Cooking
+           </Button>
 
 
             <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center opacity-70 transform group-hover:-rotate-12 transition-transform duration-300">

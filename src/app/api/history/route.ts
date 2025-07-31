@@ -1,4 +1,4 @@
-// src/app/api/history/route.ts (or src/app/api/history.ts)
+
 import { MongoClient, ServerApiVersion } from 'mongodb';
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
   try {
     // 2. Connect to MongoDB
     const { db } = await connectToDatabase();
-    const collection = db.collection('saved_recipes'); // Assuming 'saved_recipes' is your collection name
+    const collection = db.collection('saved_recipes'); 
 
     // 3. Fetch recipes for the authenticated user
     // Ensure userId in MongoDB matches Supabase user.id (which is a string)
