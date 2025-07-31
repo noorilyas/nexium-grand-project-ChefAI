@@ -102,13 +102,13 @@ export default function HomePage() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex gap-8 text-sm font-medium">
-            <a
-              href="/#features"
-              className="hover:text-[#FF7A59] transition-colors duration-200"
-              onClick={(e) => { e.preventDefault(); handleNavLinkClick('/#features'); }}
-            >
-              Features
-            </a>
+             <a
+    href="/#generate-options"
+    className="hover:text-[#FF7A59] transition-colors duration-200"
+    onClick={(e) => { e.preventDefault(); handleNavLinkClick('/#generate-options'); }}
+  >
+    Features
+  </a>
             <a
               href="/#how-it-works"
               className="hover:text-[#FF7A59] transition-colors duration-200"
@@ -163,13 +163,13 @@ export default function HomePage() {
                 >
                   <HomeIcon className="h-5 w-5" /> Home
                 </a>
-                <a
-                  href="/#features"
-                  className="flex items-center gap-3 text-gray-700 hover:text-[#FF7A59] transition-colors duration-200 py-2 border-b border-gray-100"
-                  onClick={(e) => { e.preventDefault(); handleNavLinkClick('/#features'); }}
-                >
-                  <Lightbulb className="h-5 w-5" /> Features
-                </a>
+                          <a
+                      href="/#generate-options"
+                      className="flex items-center gap-3 text-gray-700 hover:text-[#FF7A59] transition-colors duration-200 py-2 border-b border-gray-100"
+                      onClick={(e) => { e.preventDefault(); handleNavLinkClick('/#generate-options'); }}
+                    >
+                      <Lightbulb className="h-5 w-5" /> Features
+                    </a>
                 <a
                   href="/#how-it-works"
                   className="flex items-center gap-3 text-gray-700 hover:text-[#FF7A59] transition-colors duration-200 py-2 border-b border-gray-100"
@@ -314,7 +314,9 @@ export default function HomePage() {
           >
             <h3 className={`${lexend.variable} font-lexend text-2xl font-bold mb-4 text-[#2F1B12]`}> Generate Recipe using AI</h3>
             <p className="text-base text-gray-700 mb-6">Let AI suggest a dish based on your taste, dietary needs, or current cravings. Discover new culinary horizons effortlessly.</p>
-            <Button className="bg-[#FF7A59] hover:bg-[#e66549] text-white text-md px-6 py-3 rounded-full shadow-md self-start transform group-hover:scale-[1.02] transition-transform duration-200">Try It Now</Button>
+            <Button className="bg-[#FF7A59] hover:bg-[#e66549] text-white text-md px-6 py-3 rounded-full shadow-md self-start transform group-hover:scale-[1.02] transition-transform duration-200"
+             onClick={() => router.push('/generate-ai-recipe')}
+            >Try It Now</Button>
 
             <div className="absolute -top-6 -right-6 w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center opacity-70 transform group-hover:rotate-12 transition-transform duration-300">
                 <Sparkles className="w-12 h-12 text-[#FF7A59]" />

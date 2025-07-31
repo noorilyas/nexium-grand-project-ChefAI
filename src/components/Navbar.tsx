@@ -81,13 +81,13 @@ export default function Navbar() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex gap-8 text-sm font-medium">
-          <a
-            href="/#features"
-            className="hover:text-[#FF7A59] transition-colors duration-200"
-            onClick={(e) => { e.preventDefault(); handleNavLinkClick('/#features'); }}
-          >
-            Features
-          </a>
+            <a
+              href="/#generate-options"
+              className="hover:text-[#FF7A59] transition-colors duration-200"
+              onClick={(e) => { e.preventDefault(); handleNavLinkClick('/#generate-options'); }}
+            >
+              Features
+            </a>
           <a
             href="/#how-it-works"
             className="hover:text-[#FF7A59] transition-colors duration-200"
@@ -142,13 +142,13 @@ export default function Navbar() {
               >
                 <HomeIcon className="h-5 w-5" /> Home
               </a>
-              <a
-                href="/#features"
-                className="flex items-center gap-3 text-gray-700 hover:text-[#FF7A59] transition-colors duration-200 py-2 border-b border-gray-100"
-                onClick={(e) => { e.preventDefault(); handleNavLinkClick('/#features'); }}
-              >
-                <Lightbulb className="h-5 w-5" /> Features
-              </a>
+                <a
+                  href="/#generate-options"
+                  className="flex items-center gap-3 text-gray-700 hover:text-[#FF7A59] transition-colors duration-200 py-2 border-b border-gray-100"
+                  onClick={(e) => { e.preventDefault(); handleNavLinkClick('/#generate-options'); }}
+                >
+                  <Lightbulb className="h-5 w-5" /> Features
+                </a>
               <a
                 href="/#how-it-works"
                 className="flex items-center gap-3 text-gray-700 hover:text-[#FF7A59] transition-colors duration-200 py-2 border-b border-gray-100"

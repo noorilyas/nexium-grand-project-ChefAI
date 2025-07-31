@@ -223,11 +223,17 @@ Strictly output only the JSON object.`;
   let aiImageUrl: string | undefined = undefined;
   if (recipeJson?.title) {
     try {
-      const imagePrompt = `Ultra-realistic photograph of '${recipeJson.title}' — styled like a professional magazine food photo. Use natural lighting with soft shadows, realistic colors, and authentic textures (e.g. visible grains, slight imperfections, natural steam or moisture). Beautifully plated on a clean surface with real-world imperfections like crumbs or sauce smears. Captured with a shallow depth of field and a softly blurred background for a natural DSLR look. 
+    const imagePrompt = `
+A professionally styled, ultra-realistic photo of the finished dish: "${recipeJson.title}". 
 
-    📌 Important: The image must **only show the food and background**. 
-    **Do NOT include**: cameras, camera lenses, human hands, reflections, photography equipment, tripods, studio lights, photographers, person holding camera, hands holding camera, lens flare from camera, camera flash, camera view, photography studio, blurred camera in background, watermark, text. 
-    The final output should feel like it was taken with a DSLR — but no camera or gear should be present in the image at all.`;
+The dish is beautifully plated with a natural, appetizing presentation. It features realistic textures, visible grains, steam or moisture, and authentic food details. The setting includes a clean surface with artistic imperfections like small crumbs or a sauce smear. 
+
+Ingredients: ${recipeJson.ingredients?.slice(0, 5).join(", ")}
+
+Cooking Method Summary: ${recipeJson.instructions?.slice(0, 3).join(" ")}
+
+Use soft natural lighting and shallow depth of field to create a warm, inviting, high-end food magazine look. The focus should be entirely on the food, presented in a visually appealing way.`;
+
       const imageResponse = await openai.images.generate({
         model: "dall-e-3",
         prompt: imagePrompt,
